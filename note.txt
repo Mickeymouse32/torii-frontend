@@ -1,0 +1,40 @@
+torri-gate-frontend
+
+Tenant Owners dashboard
+
+MERN STACK - mongodb express react node js
+
+frontend 
+react 
+tailwind daisy ui
+axios 
+react-icons
+context api
+
+backend 
+mongodb/mongoose 
+express/ node js
+
+FEATURES
+1. User Authentication (Login , Register, forgot password reset password)
+2. Role Based access Control (RBAC)
+3. file uplooads 
+4. email sending
+5. Crud operations
+
+
+REgistration
+1. input validation
+2. get the input and send to the api as a post request (axios)
+3. response - success or error
+a. redirec to the verify page
+b. error (display error)
+
+Login
+1. input validation
+
+
+LOGIN page
+appcontext
+nav
+dashBoardLayout
