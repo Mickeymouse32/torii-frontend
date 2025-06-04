@@ -8,6 +8,7 @@ import { axiosInstance } from "../utils/axiosInstance";
 import { useAppContext } from "../hooks/useAppContext";
 import { toast } from "react-toastify";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import DeleteModal from "./DeleteModal";
 
 const AdminPropertyCard = ({
   _id,
@@ -48,6 +49,26 @@ const AdminPropertyCard = ({
     }
   };
 
+  const handleDelete = async (propertyId) => {
+    try {
+      const response = await axiosInstance.delete(
+        `/property/landlord/${propertyId}`,
+
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      if (response.status === 200) {
+        toast.success("Property Deleted Successfully");
+        setTimeout(() => {
+          window.location.reload();
+        }, 3000);
+      }
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const statusStyle =
     currentStatus === "rented"
       ? "bg-[#f6f6f6] text-[#0c0c0c]"
@@ -55,6 +76,7 @@ const AdminPropertyCard = ({
 
   return (
     <div className="bg-white rounded-lg flex items-center justify-between p-2.5">
+      {/* {showModal && <DeleteModal setShowModal={setShowModal} />} */}
       <div className="flex items-center gap-2 relative">
         <img
           src={images[0]}
@@ -89,7 +111,7 @@ const AdminPropertyCard = ({
 
       <div className="flex flex-col gap-[22px] items-end relative">
         <div className="flex items-center gap-2">
-          <button className="cursor-pointer">
+          <button className="cursor-pointer" onClick={() => handleDelete(_id)}>
             <RiDeleteBin6Line />
           </button>
           <button onClick={toggleDropdown} className="cursor-pointer">
