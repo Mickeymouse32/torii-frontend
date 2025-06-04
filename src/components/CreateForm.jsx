@@ -5,8 +5,12 @@ import { PiWarningCircle } from "react-icons/pi";
 import { BiImageAdd } from "react-icons/bi";
 import { propertySchema } from "../utils/formValidator";
 import ConfirmModal from "./ConfirmModal";
-
+import { useAppContext } from "../hooks/useAppContext";
+import { axiosInstance } from "../utils/axiosInstance";
+import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 const CreateForm = () => {
+  const redirect = useNavigate();
   const {
     register,
     handleSubmit,
@@ -15,10 +19,11 @@ const CreateForm = () => {
   } = useForm({
     resolver: yupResolver(propertySchema),
   });
-  const [showModal, setShowModal] = useState(true);
+  const [showModal, setShowModal] = useState(false);
   const [imagePreviews, setImagePreviews] = useState(Array(6).fill(null));
   const [images, setImages] = useState(Array(6).fill(null)); // will store actual File objects
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { token } = useAppContext();
   const handleImageChange = (e, index) => {
     const file = e.target.files[0];
     if (file && file.type.startsWith("image/")) {
@@ -38,7 +43,14 @@ const CreateForm = () => {
     setImagePreviews(Array(6).fill(null));
   };
 
-  const onSubmit = (data) => {
+  const onSubmit = async (data) => {
+    setIsSubmitting(true);
+    const validImages = images.filter((img) => img !== null);
+    if (validImages.length < 6) {
+      toast.error("Please upload all 6 images before submitting.");
+      setIsSubmitting(false);
+      return;
+    }
     const formData = new FormData();
     images.forEach((file, index) => {
       if (file) formData.append("images", file); // backend should handle array field
@@ -48,10 +60,31 @@ const CreateForm = () => {
     });
     // e.g. send formData via fetch or axios
     console.log("Form submitted", formData);
+    try {
+      const response = await axiosInstance.post("/property", formData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      console.log(response);
+      if (response.status === 201) {
+        reset();
+        setImages(Array(6).fill(null));
+        setImagePreviews(Array(6).fill(null));
+        setShowModal(true);
+      }
+      if (response.status == 401) {
+        toast.warning("session expired");
+        redirect("/login");
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Error Creating Property");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-4xl mx-auto p-6 bg-white rounded-lg shadow-md mt-2.5">
       {showModal && <ConfirmModal setShowModal={setShowModal} />}
       <h1 className="text-2xl font-bold mb-6">Create New Property</h1>
 
@@ -116,6 +149,7 @@ const CreateForm = () => {
               <label className="mylabel">Bedroom</label>
               <input
                 type="number"
+                min="0"
                 {...register("bedroom")}
                 placeholder="Enter number"
                 className={`myinput ${
@@ -132,6 +166,7 @@ const CreateForm = () => {
               <label className="mylabel">Living room</label>
               <input
                 type="number"
+                min="0"
                 {...register("livingRoom")}
                 placeholder="Enter number"
                 className={`myinput ${
@@ -148,6 +183,7 @@ const CreateForm = () => {
               <label className="mylabel">Toilet</label>
               <input
                 type="number"
+                min="0"
                 {...register("toilet")}
                 placeholder="Enter number"
                 className={`myinput ${
@@ -164,6 +200,7 @@ const CreateForm = () => {
               <label className="mylabel">Kitchen</label>
               <input
                 type="number"
+                min="0"
                 {...register("kitchen")}
                 placeholder="Enter number"
                 className={`myinput ${
@@ -289,9 +326,14 @@ const CreateForm = () => {
           </button>
           <button
             type="submit"
+            disabled={isSubmitting}
             className="px-6 py-2 bg-black text-white rounded-lg cursor-pointer"
           >
-            Create property
+            {isSubmitting ? (
+              <span className="loading loading-spinner loading-md"></span>
+            ) : (
+              "Create Property"
+            )}
           </button>
         </div>
       </form>

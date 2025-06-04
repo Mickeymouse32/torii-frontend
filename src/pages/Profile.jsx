@@ -5,6 +5,7 @@ import * as yup from "yup";
 import { useAppContext } from "../hooks/useAppContext";
 import { axiosInstance } from "../utils/axiosInstance";
 import { toast } from "react-toastify";
+import { useNavigate } from "react-router-dom";
 
 const phone_regex = /^\+?[1-9][0-9]{7,14}$/;
 
@@ -16,6 +17,7 @@ const validationSchema = yup.object().shape({
 });
 
 const Profile = () => {
+  const redirect = useNavigate();
   const { user, token, updateUser } = useAppContext();
 
   const {
@@ -73,6 +75,10 @@ const Profile = () => {
         updateUser(response.data.user);
         toast.success("Profile updated successfully");
         setIsEditable(false);
+      }
+      if (response.status == 401) {
+        toast.warning("session expired");
+        redirect("/login");
       }
     } catch (error) {
       console.error(error);
